@@ -1,8 +1,0 @@
-Windows Registry Editor Version 5.00
-
-[HKEY_CLASSES_ROOT\Directory\Background\shell\SortFilesByDate]
-@="按日期整理檔案"
-"Icon"="\"%SystemRoot%\\System32\\shell32.dll\",45"
-
-[HKEY_CLASSES_ROOT\Directory\Background\shell\SortFilesByDate\command]
-@="\"C:\\Users\\maoto\\Desktop\\新增資料夾 (3)\\sort_by_date.exe\"" 
