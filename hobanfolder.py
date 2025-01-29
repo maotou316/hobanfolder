@@ -6,6 +6,74 @@ from datetime import datetime
 import tkinter as tk
 from tkinter import ttk
 import tkinter.messagebox as msgbox
+import locale
+
+VERSION = "0.0.2"
+
+# 在檔案開頭加入語言資源
+TRANSLATIONS = {
+    'zh_TW': {
+        'window_title': f'齁斑資料夾 v{VERSION}',
+        'progress_title': f'處理進度 - 齁斑資料夾 v{VERSION}',
+        'processing': '正在處理檔案...',
+        'progress_text': '進度: {current}/{total}',
+        'processing_file': '正在處理: {filename}',
+        'confirm_title': '齁斑資料夾',
+        'confirm_message': '按確定開始將檔案依照日期分類到資料夾中，如不執行請按取消',
+        'error_title': '齁斑資料夾 - 處理完成但發生錯誤',
+        'success_title': '齁斑資料夾 - 完成',
+        'context_menu_text': 'use 齁斑資料夾整理',
+        'log_header': '齁斑資料夾執行記錄',
+    },
+    'en_US': {
+        'window_title': f'Hoban Folder v{VERSION}',
+        'progress_title': f'Progress - Hoban Folder v{VERSION}',
+        'processing': 'Processing files...',
+        'progress_text': 'Progress: {current}/{total}',
+        'processing_file': 'Processing: {filename}',
+        'confirm_title': 'Hoban Folder',
+        'confirm_message': 'Click OK to start organizing files by date. Click Cancel to abort.',
+        'error_title': 'Hoban Folder - Completed with Errors',
+        'success_title': 'Hoban Folder - Complete',
+        'context_menu_text': 'Organize with Hoban Folder',
+        'log_header': 'Hoban Folder Execution Log',
+    },
+    'ja_JP': {
+        'window_title': f'齁斑フォルダ v{VERSION}',
+        'progress_title': f'処理進捗 - 齁斑フォルダ v{VERSION}',
+        'processing': 'ファイル処理中...',
+        'progress_text': '進捗: {current}/{total}',
+        'processing_file': '処理中: {filename}',
+        'confirm_title': '齁斑フォルダ',
+        'confirm_message': 'ファイルを日付順に整理を開始するにはOKをクリックしてください。中止する場合はキャンセルをクリックしてください。',
+        'error_title': '齁斑フォルダ - エラーあり完了',
+        'success_title': '齁斑フォルダ - 完了',
+        'context_menu_text': '齁斑フォルダで整理',
+        'log_header': '齁斑フォルダ実行ログ',
+    }
+}
+
+# 加入取得系統語言的函數
+def get_system_language():
+    try:
+        sys_locale = locale.getdefaultlocale()[0]
+        if sys_locale in TRANSLATIONS:
+            return sys_locale
+        # 如果是其他中文地區，使用繁體中文
+        if sys_locale.startswith('zh_'):
+            return 'zh_TW'
+        # 如果是其他日文地區
+        if sys_locale.startswith('ja_'):
+            return 'ja_JP'
+        # 預設使用英文
+        return 'en_US'
+    except:
+        return 'en_US'
+
+# 加入取得翻譯文字的函數
+def get_text(key):
+    lang = get_system_language()
+    return TRANSLATIONS[lang][key]
 
 def get_script_path():
     return os.getcwd() + os.sep
@@ -46,7 +114,7 @@ def is_same_file(file1_path, file2_path):
 class ProgressWindow:
     def __init__(self, total_files):
         self.root = tk.Tk()
-        self.root.title("處理進度")
+        self.root.title(get_text('progress_title'))
         
         # 設定視窗大小和位置
         window_width = 400
@@ -66,7 +134,7 @@ class ProgressWindow:
         frame.pack(fill=tk.BOTH, expand=True)
         
         # 進度標籤
-        self.label = ttk.Label(frame, text="正在處理檔案...")
+        self.label = ttk.Label(frame, text=get_text('processing'))
         self.label.pack(pady=(0, 10))
         
         # 進度條
@@ -91,8 +159,13 @@ class ProgressWindow:
     def update(self, filename):
         self.current_file += 1
         self.progress["value"] = self.current_file
-        self.label.config(text=f"進度: {self.current_file}/{self.total_files}")
-        self.file_label.config(text=f"正在處理: {filename}")
+        self.label.config(text=get_text('progress_text').format(
+            current=self.current_file, 
+            total=self.total_files
+        ))
+        self.file_label.config(text=get_text('processing_file').format(
+            filename=filename
+        ))
         self.root.update()
         
     def close(self):
@@ -104,11 +177,11 @@ def create_context_menu():
         exe_path = os.path.abspath(sys.executable if getattr(sys, 'frozen', False) else __file__)
         exe_dir = os.path.dirname(exe_path)
         
-        # 準備註冊表內容（注意：這裡使用 bytes 來處理中文）
+        # 修改註冊表內容
         reg_content = f'''Windows Registry Editor Version 5.00
 
 [HKEY_CLASSES_ROOT\\Directory\\Background\\shell\\HobanFolder]
-@=hex(2):75,00,73,00,65,00,20,00,E9,BD,81,E6,96,91,E8,B3,87,E6,96,99,E5,A4,BE,E6,95,B4,E7,90,86,00
+@="{get_text('context_menu_text')}"
 "Icon"="\"%SystemRoot%\\System32\\shell32.dll\",45"
 
 [HKEY_CLASSES_ROOT\\Directory\\Background\\shell\\HobanFolder\\command]
@@ -142,7 +215,10 @@ def main():
         create_context_menu()
     
     # 顯示確認對話框
-    if not msgbox.askokcancel("齁斑資料夾", "按確定開始將檔案依照日期分類到資料夾中，如不執行請按取消"):
+    if not msgbox.askokcancel(
+        get_text('confirm_title'), 
+        get_text('confirm_message')
+    ):
         return
 
     start_time = time.time()
@@ -231,17 +307,17 @@ def main():
         result_message.extend(error_files)
         
         # 顯示錯誤訊息
-        msgbox.showerror("齁斑資料夾 - 處理完成但發生錯誤", "\n".join(result_message))
+        msgbox.showerror(get_text('error_title'), "\n".join(result_message))
     else:
         # 成功時只顯示簡短訊息
         result_message = f"已成功建立{count_folders}個新資料夾，並處理了{count_files}個檔案\n共花了{elapsed_time:.2f}秒"
-        msgbox.showinfo("齁斑資料夾 - 完成", result_message)
+        msgbox.showinfo(get_text('success_title'), result_message)
     
     # 無論是否有錯誤都將完整記錄寫入檔案
     # log_file = os.path.join(path, "hobanfolder_log.txt")
     
     full_log = [
-        f"齁斑資料夾執行記錄",
+        get_text('log_header'),
         f"執行時間：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         f"已建立{count_folders}個新資料夾，並處理了{count_files}個檔案",
         f"共花了{elapsed_time:.2f}秒",
