@@ -22,7 +22,7 @@ TRANSLATIONS = {
         'confirm_message': '按確定開始將檔案依照日期分類到資料夾中，如不執行請按取消',
         'error_title': '齁斑資料夾 - 處理完成但發生錯誤',
         'success_title': '齁斑資料夾 - 完成',
-        'context_menu_text': 'use 齁斑資料夾整理',
+        'context_menu_text': '使用齁斑資料夾整理',
         'log_header': '齁斑資料夾執行記錄',
     },
     'en_US': {
